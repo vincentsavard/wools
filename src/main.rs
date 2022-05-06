@@ -31,6 +31,8 @@ enum Command {
         #[clap()]
         guesses: Vec<Word>,
     },
+    /// Displays the list of valid, normalized words from the dictionary.
+    Dict,
 }
 
 fn main() -> Result<(), String> {
@@ -39,6 +41,7 @@ fn main() -> Result<(), String> {
 
     match opt.command {
         Command::Filter { solution, guesses } => filter(words, solution, guesses),
+        Command::Dict => dict(words),
     }
 }
 
@@ -55,6 +58,14 @@ fn load_words<P: AsRef<Path>>(dictionary_path: P) -> Result<Vec<Word>, String> {
 
 fn filter(words: Vec<Word>, solution: Word, guesses: Vec<Word>) -> Result<(), String> {
     for word in wools::filter(&words, &solution, &guesses) {
+        println!("{}", word);
+    }
+
+    Ok(())
+}
+
+fn dict(words: Vec<Word>) -> Result<(), String> {
+    for word in words {
         println!("{}", word);
     }
 
