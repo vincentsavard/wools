@@ -3,6 +3,8 @@ name = "wools"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
+readme = "README.md"
+repository = "https://github.com/vincentsavard/wools"
 description = "Tools for the Wordle game."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
