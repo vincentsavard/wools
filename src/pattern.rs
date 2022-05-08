@@ -32,51 +32,25 @@ impl Pattern {
     /// assert_eq!(None, iter.next());
     /// ```
     pub fn from_solution_and_guess(solution: &Word, guess: &Word) -> Self {
-        let mut hints = HashMap::with_capacity(Word::SIZE);
-        let mut solution_by_position: HashMap<usize, char> = solution.chars().enumerate().collect();
-        let mut guess_by_position: HashMap<usize, char> = guess.chars().enumerate().collect();
+        let mut hints = [Hint::Black; Word::SIZE];
+        let mut solution_chars = Pattern::count_chars(solution);
 
-        // Greens
-        for i in Word::POSITIONS {
-            if let Some(guess_char) = guess_by_position.get(&i) {
-                let solution_char = solution_by_position.get(&i).unwrap();
-                if guess_char == solution_char {
-                    hints.insert(i, Hint::Green);
-                    guess_by_position.remove(&i).unwrap();
-                    solution_by_position.remove(&i).unwrap();
-                }
-            }
-        }
+        for (i, (guess_char, solution_char)) in guess.chars().zip(solution.chars()).enumerate() {
+            let hint = match solution_chars.get_mut(&guess_char) {
+                Some(0) | None => Hint::Black,
+                Some(count) => {
+                    *count -= 1;
 
-        // Yellows
-        for i in Word::POSITIONS {
-            if let Some(guess_char) = guess_by_position.get(&i) {
-                for j in Word::POSITIONS {
-                    if let Some(solution_char) = solution_by_position.get(&j) {
-                        if guess_char == solution_char {
-                            hints.insert(i, Hint::Yellow);
-                            guess_by_position.remove(&i).unwrap();
-                            solution_by_position.remove(&j).unwrap();
-                            break;
-                        }
+                    if guess_char == solution_char {
+                        Hint::Green
+                    } else {
+                        Hint::Yellow
                     }
                 }
-            }
-        }
+            };
 
-        // Blacks
-        for i in Word::POSITIONS {
-            if guess_by_position.contains_key(&i) {
-                hints.insert(i, Hint::Black);
-                guess_by_position.remove(&i).unwrap();
-            }
+            hints[i] = hint;
         }
-
-        let hints: [Hint; Word::SIZE] = Word::POSITIONS
-            .map(|i| *hints.get(&i).unwrap())
-            .collect::<Vec<Hint>>()
-            .try_into()
-            .unwrap();
 
         FromGuess {
             guess: guess.clone(),
@@ -89,6 +63,17 @@ impl Pattern {
         match self {
             FromGuess { hints, .. } => hints.iter(),
         }
+    }
+
+    fn count_chars(word: &Word) -> HashMap<char, usize> {
+        let mut chars = HashMap::with_capacity(Word::SIZE);
+
+        for char in word.chars() {
+            let count = chars.entry(char).or_insert_with(|| 0_usize);
+            *count += 1;
+        }
+
+        chars
     }
 }
 

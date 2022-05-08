@@ -139,7 +139,7 @@ impl Constraint {
     }
 
     fn not_at(positions: &[usize]) -> Vec<usize> {
-        Word::POSITIONS.filter(|i| !positions.contains(i)).collect()
+        (0..Word::SIZE).filter(|i| !positions.contains(i)).collect()
     }
 
     fn positions(&self) -> &[usize] {

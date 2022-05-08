@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter};
-use std::ops::Range;
 use std::str::FromStr;
 
 /// A word for which its length is strictly defined as [`Word::SIZE`], and for which characters are
@@ -12,8 +11,6 @@ pub struct Word {
 impl Word {
     /// The size that each word must have, in unicode scalar value count.
     pub const SIZE: usize = 5;
-    /// The range of positions in a word.
-    pub const POSITIONS: Range<usize> = 0..Word::SIZE;
 
     /// Creates a new word from a string, or panics if it cannot.
     ///
