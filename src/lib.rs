@@ -9,7 +9,7 @@ mod pattern;
 mod word;
 
 /// Filters out the words using the solution and the guesses, so that only the possible solutions
-/// remains.
+/// remain.
 ///
 /// # Examples
 ///
