@@ -23,14 +23,14 @@ mod word;
 /// assert_eq!(vec!(&Word::new("apple")), solutions);
 /// ```
 pub fn filter<'a>(words: &'a [Word], solution: &Word, guesses: &[Word]) -> Vec<&'a Word> {
-    let patterns = guesses
+    let constraints = guesses
         .iter()
         .map(|guess| Constraints::from_pattern(&Pattern::from_solution_and_guess(solution, guess)))
         .collect::<Vec<Constraints>>();
 
     words
         .iter()
-        .filter(|word| patterns.iter().all(|pattern| pattern.matches(word)))
+        .filter(|word| constraints.iter().all(|pattern| pattern.matches(word)))
         .collect()
 }
 
