@@ -14,9 +14,7 @@ mod word;
 /// # Examples
 ///
 /// ```
-/// # use std::str::FromStr;
-/// # use wools::Word;
-/// # use wools::filter;
+/// # use wools::{Word, filter};
 /// let words = [Word::new("apple"), Word::new("prime")];
 /// let solutions = filter(&words, &Word::new("apple"), &[Word::new("prime")]);
 ///
@@ -34,9 +32,32 @@ pub fn filter<'a>(words: &'a [Word], solution: &Word, guesses: &[Word]) -> Vec<&
         .collect()
 }
 
+/// Finds the words which produce the same hints given the solution.
+///
+/// # Examples
+///
+/// ```
+/// # use wools::{Hint, matches, Word};
+/// let words = [Word::new("cargo"), Word::new("babel"), Word::new("orbit")];
+/// let hints = [Hint::Black, Hint::Green, Hint::Black, Hint::Black, Hint::Black];
+/// let matches = matches(&words, &Word::new("cargo"), &hints);
+///
+/// assert_eq!(vec!(&Word::new("babel")), matches);
+/// ```
+pub fn matches<'a>(
+    words: &'a [Word],
+    solution: &Word,
+    hints: &[Hint; Word::SIZE],
+) -> Vec<&'a Word> {
+    words
+        .iter()
+        .filter(|word| Pattern::from_solution_and_guess(solution, word).hints == *hints)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{filter, Word};
+    use crate::{filter, matches, Hint, Word};
 
     #[test]
     fn given_guess_is_solution_when_filter_then_no_other_words_can_be_the_solution() {
@@ -73,5 +94,41 @@ mod tests {
         let solutions = filter(&words, &Word::new("apple"), &guesses);
 
         assert_eq!(vec![&Word::new("apple")], solutions);
+    }
+
+    #[test]
+    fn given_hints_are_all_green_when_matches_then_only_solution_matches() {
+        let words = ["apple", "prime", "plume", "torch", "watch", "soles"]
+            .into_iter()
+            .map(Word::new)
+            .collect::<Vec<Word>>();
+        let hints = [
+            Hint::Green,
+            Hint::Green,
+            Hint::Green,
+            Hint::Green,
+            Hint::Green,
+        ];
+        let matches = matches(&words, &Word::new("apple"), &hints);
+
+        assert_eq!(vec![&Word::new("apple")], matches);
+    }
+
+    #[test]
+    fn given_hints_when_matches_then_only_possible_words_match() {
+        let words = ["apple", "prime", "plume", "phone", "torch", "watch"]
+            .into_iter()
+            .map(Word::new)
+            .collect::<Vec<Word>>();
+        let hints = [
+            Hint::Yellow,
+            Hint::Black,
+            Hint::Black,
+            Hint::Black,
+            Hint::Green,
+        ];
+        let matches = matches(&words, &Word::new("apple"), &hints);
+
+        assert_eq!(vec![&Word::new("prime"), &Word::new("phone")], matches);
     }
 }

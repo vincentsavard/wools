@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use clap::{Parser, Subcommand};
 
-use wools::Word;
+use wools::{Hint, Word};
 
 const DICTIONARY_FILE_PATH: &str = "/usr/share/dict/american-english";
 const DEFAULT_WORDLE_URL: &str = "https://www.nytimes.com/games/wordle/index.html";
@@ -33,6 +33,15 @@ enum Command {
         #[clap()]
         guesses: Vec<Word>,
     },
+    /// Finds the word matching the pattern knowing the solution
+    Match {
+        /// Sets the five-letter word as the solution
+        #[clap()]
+        solution: Word,
+        /// Sets the pattern to match
+        #[clap(name = "PATTERN", parse(try_from_str = parse_hints))]
+        hints: [Hint; Word::SIZE],
+    },
     /// Displays the list of valid, normalized words from the dictionary.
     Dict,
     /// Opens Wordle in the default browser.
@@ -48,9 +57,32 @@ fn main() -> Result<(), String> {
 
     match opt.command {
         Command::Filter { solution, guesses } => filter(words, solution, guesses),
+        Command::Match { solution, hints } => matches(words, solution, hints),
         Command::Dict => dict(words),
         Command::Open { url } => open(url),
     }
+}
+
+fn parse_hints(s: &str) -> Result<[Hint; Word::SIZE], String> {
+    let s = s.to_lowercase();
+
+    if s.chars().count() != Word::SIZE {
+        return Err("pattern is not five-character long".to_string());
+    } else if !s.chars().all(|c| matches!(c, 'g' | 'y' | 'b')) {
+        return Err("pattern contains unsupported characters".to_string());
+    }
+
+    let hints: Vec<Hint> = s
+        .chars()
+        .map(|c| match c {
+            'g' => Hint::Green,
+            'y' => Hint::Yellow,
+            'b' => Hint::Black,
+            _ => unreachable!(),
+        })
+        .collect();
+
+    Ok(hints.try_into().unwrap())
 }
 
 fn load_words<P: AsRef<Path>>(dictionary_path: P) -> Result<Vec<Word>, String> {
@@ -66,6 +98,14 @@ fn load_words<P: AsRef<Path>>(dictionary_path: P) -> Result<Vec<Word>, String> {
 
 fn filter(words: Vec<Word>, solution: Word, guesses: Vec<Word>) -> Result<(), String> {
     for word in wools::filter(&words, &solution, &guesses) {
+        println!("{}", word);
+    }
+
+    Ok(())
+}
+
+fn matches(words: Vec<Word>, solution: Word, hints: [Hint; Word::SIZE]) -> Result<(), String> {
+    for word in wools::matches(&words, &solution, &hints) {
         println!("{}", word);
     }
 

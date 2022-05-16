@@ -1,16 +1,12 @@
 use std::collections::HashMap;
 
 use crate::word::Word;
-use crate::Pattern::FromGuess;
 
 /// A pattern formed by the characters in a word, encoded as an ordered sequence of [`Hint`]s.
 #[derive(Debug)]
-pub enum Pattern {
-    /// A pattern and its guess word from which the pattern is created.
-    FromGuess {
-        guess: Word,
-        hints: [Hint; Word::SIZE],
-    },
+pub struct Pattern {
+    pub guess: Word,
+    pub hints: [Hint; Word::SIZE],
 }
 
 impl Pattern {
@@ -52,7 +48,7 @@ impl Pattern {
             hints[i] = hint;
         }
 
-        FromGuess {
+        Pattern {
             guess: guess.clone(),
             hints,
         }
@@ -60,9 +56,7 @@ impl Pattern {
 
     /// Returns an iterator over the [`Hint`]s of the pattern.
     pub fn hints(&self) -> impl Iterator<Item = &Hint> {
-        match self {
-            FromGuess { hints, .. } => hints.iter(),
-        }
+        self.hints.iter()
     }
 
     fn count_chars(word: &Word) -> HashMap<char, usize> {

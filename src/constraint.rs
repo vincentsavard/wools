@@ -15,10 +15,7 @@ impl Constraints {
     /// # Examples
     ///
     /// ```
-    /// # use std::str::FromStr;
-    /// # use wools::Constraints;
-    /// # use wools::Word;
-    /// # use wools::Pattern;
+    /// # use wools::{Constraints, Pattern, Word};
     /// let pattern = Pattern::from_solution_and_guess(&Word::new("apple"), &Word::new("prime"));
     /// let constraints = Constraints::from_pattern(&pattern);
     ///
@@ -26,7 +23,7 @@ impl Constraints {
     /// assert!(!constraints.matches(&Word::new("forgo")));
     /// ```
     pub fn from_pattern(pattern: &Pattern) -> Self {
-        let Pattern::FromGuess { guess, hints } = pattern;
+        let Pattern { guess, hints } = pattern;
         let mut constraints = Vec::new();
         let mut hints_by_char = HashMap::with_capacity(Word::SIZE);
 
