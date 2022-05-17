@@ -88,7 +88,7 @@ impl FromStr for Word {
             })
             .collect::<String>();
 
-        if word.chars().all(|c| ('a'..='z').contains(&c)) {
+        if word.chars().all(|c| matches!(c, 'a'..='z')) {
             Ok(Word { word })
         } else {
             Err("word contains non-alphabetical characters".to_string())
