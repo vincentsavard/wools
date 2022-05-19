@@ -55,9 +55,37 @@ pub fn matches<'a>(
         .collect()
 }
 
+/// Filters out the words using the guesses and hints, so that only the possible solutions remain.
+///
+/// # Examples
+///
+/// ```
+/// # use wools::{Hint, solve, Word};
+/// let words = [Word::new("cargo"), Word::new("babel"), Word::new("orbit")];
+/// let guess = Word::new("pants");
+/// let hints = [Hint::Black, Hint::Green, Hint::Black, Hint::Black, Hint::Black];
+/// let solutions = solve(&words, &[(guess, hints)]);
+/// ```
+pub fn solve<'a>(
+    words: &'a [Word],
+    guesses_and_hints: &[(Word, [Hint; Word::SIZE])],
+) -> Vec<&'a Word> {
+    let constraints = guesses_and_hints
+        .iter()
+        .map(|(guess, hints)| {
+            Constraints::from_pattern(&Pattern::from_guess_and_hints(guess, hints))
+        })
+        .collect::<Vec<Constraints>>();
+
+    words
+        .iter()
+        .filter(|word| constraints.iter().all(|pattern| pattern.matches(word)))
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::{filter, matches, Hint, Word};
+    use crate::{filter, matches, solve, Hint, Word};
 
     #[test]
     fn given_guess_is_solution_when_filter_then_no_other_words_can_be_the_solution() {
@@ -130,5 +158,24 @@ mod tests {
         let matches = matches(&words, &Word::new("apple"), &hints);
 
         assert_eq!(vec![&Word::new("prime"), &Word::new("phone")], matches);
+    }
+
+    #[test]
+    fn given_guess_and_hints_when_solve_then_filter_out_non_possible_words() {
+        let words = ["apple", "prime", "plume", "torch", "watch", "soles"]
+            .into_iter()
+            .map(Word::new)
+            .collect::<Vec<Word>>();
+        let guess = Word::new("coupe");
+        let hints = [
+            Hint::Black,
+            Hint::Black,
+            Hint::Black,
+            Hint::Yellow,
+            Hint::Green,
+        ];
+        let solutions = solve(&words, &[(guess, hints)]);
+
+        assert_eq!(vec![&Word::new("apple"), &Word::new("prime")], solutions);
     }
 }

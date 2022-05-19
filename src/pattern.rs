@@ -54,6 +54,24 @@ impl Pattern {
         }
     }
 
+    /// Creates a pattern from a guess and the hints it produces.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// # use wools::{Hint, Pattern, Word};
+    /// let hints = [Hint::Black, Hint::Green, Hint::Yellow, Hint::Black, Hint::Black];
+    /// let pattern = Pattern::from_guess_and_hints(&Word::new("attic"), &hints);
+    ///
+    /// assert_eq!(hints, pattern.hints);
+    /// ```
+    pub fn from_guess_and_hints(guess: &Word, hints: &[Hint; Word::SIZE]) -> Self {
+        Pattern {
+            guess: guess.clone(),
+            hints: *hints,
+        }
+    }
+
     /// Returns an iterator over the [`Hint`]s of the pattern.
     pub fn hints(&self) -> impl Iterator<Item = &Hint> {
         self.hints.iter()
@@ -182,5 +200,20 @@ mod tests {
         assert_eq!(Some(&Hint::Yellow), iter.next());
         assert_eq!(Some(&Hint::Black), iter.next());
         assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    fn when_from_guess_and_hints_then_hints_are_the_same() {
+        let guess = Word::new("apple");
+        let hints = [
+            Hint::Black,
+            Hint::Green,
+            Hint::Yellow,
+            Hint::Black,
+            Hint::Black,
+        ];
+        let pattern = Pattern::from_guess_and_hints(&guess, &hints);
+
+        assert_eq!(hints, pattern.hints);
     }
 }

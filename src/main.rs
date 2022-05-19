@@ -42,6 +42,12 @@ enum Command {
         #[clap(name = "PATTERN", parse(try_from_str = parse_hints))]
         hints: [Hint; Word::SIZE],
     },
+    /// Finds the words that may be the solution
+    Solve {
+        /// Sets the guess and its hints, separated by a comma
+        #[clap(name = "GUESS", parse(try_from_str = parse_guess_and_hints))]
+        guesses_and_hints: Vec<(Word, [Hint; Word::SIZE])>,
+    },
     /// Displays the list of valid, normalized words from the dictionary.
     Dict,
     /// Opens Wordle in the default browser.
@@ -58,6 +64,7 @@ fn main() -> Result<(), String> {
     match opt.command {
         Command::Filter { solution, guesses } => filter(words, solution, guesses),
         Command::Match { solution, hints } => matches(words, solution, hints),
+        Command::Solve { guesses_and_hints } => solve(words, guesses_and_hints),
         Command::Dict => dict(words),
         Command::Open { url } => open(url),
     }
@@ -85,6 +92,22 @@ fn parse_hints(s: &str) -> Result<[Hint; Word::SIZE], String> {
     Ok(hints.try_into().unwrap())
 }
 
+fn parse_guess_and_hints(s: &str) -> Result<(Word, [Hint; Word::SIZE]), String> {
+    let parts: Vec<&str> = s.split(',').collect();
+
+    if parts.len() != 2 {
+        return Err("input cannot be split in two".to_string());
+    }
+
+    // SAFETY: `parts` is guaranteed to have a length of two.
+    unsafe {
+        let word = Word::from_str(parts.get_unchecked(0))?;
+        let hints = parse_hints(parts.get_unchecked(1))?;
+
+        Ok((word, hints))
+    }
+}
+
 fn load_words<P: AsRef<Path>>(dictionary_path: P) -> Result<Vec<Word>, String> {
     let file = File::open(dictionary_path).map_err(|err| err.to_string())?;
     let mut words = BufReader::new(file)
@@ -106,6 +129,17 @@ fn filter(words: Vec<Word>, solution: Word, guesses: Vec<Word>) -> Result<(), St
 
 fn matches(words: Vec<Word>, solution: Word, hints: [Hint; Word::SIZE]) -> Result<(), String> {
     for word in wools::matches(&words, &solution, &hints) {
+        println!("{}", word);
+    }
+
+    Ok(())
+}
+
+fn solve(
+    words: Vec<Word>,
+    guesses_and_hints: Vec<(Word, [Hint; Word::SIZE])>,
+) -> Result<(), String> {
+    for word in wools::solve(&words, &guesses_and_hints) {
         println!("{}", word);
     }
 
