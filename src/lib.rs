@@ -3,10 +3,12 @@
 pub use crate::constraint::Constraints;
 pub use crate::pattern::{Hint, Pattern};
 pub use crate::word::Word;
+pub use crate::wordlist::load_default_words;
 
 mod constraint;
 mod pattern;
 mod word;
+mod wordlist;
 
 /// Filters out the words using the solution and the guesses, so that only the possible solutions
 /// remain.

@@ -6,17 +6,16 @@ use std::str::FromStr;
 
 use clap::{Parser, Subcommand};
 
-use wools::{Hint, Word};
+use wools::{load_default_words, Hint, Word};
 
-const DICTIONARY_FILE_PATH: &str = "/usr/share/dict/american-english";
 const DEFAULT_WORDLE_URL: &str = "https://www.nytimes.com/games/wordle/index.html";
 
 #[derive(Parser)]
 #[clap(version, about)]
 struct Opt {
     /// Sets the path to the dictionary
-    #[clap(short, long, parse(from_os_str), default_value = DICTIONARY_FILE_PATH)]
-    dictionary: PathBuf,
+    #[clap(short, long, parse(from_os_str))]
+    dictionary: Option<PathBuf>,
 
     #[clap(subcommand)]
     command: Command,
@@ -59,7 +58,10 @@ enum Command {
 
 fn main() -> Result<(), String> {
     let opt: Opt = Opt::parse();
-    let words = load_words(opt.dictionary)?;
+    let words = opt
+        .dictionary
+        .map(load_words)
+        .unwrap_or_else(|| Ok(load_default_words()))?;
 
     match opt.command {
         Command::Filter { solution, guesses } => filter(words, solution, guesses),
