@@ -28,29 +28,40 @@ impl Pattern {
     /// assert_eq!(None, iter.next());
     /// ```
     pub fn from_solution_and_guess(solution: &Word, guess: &Word) -> Self {
-        let mut hints = [Hint::Black; Word::SIZE];
+        let mut hints: [Option<Hint>; Word::SIZE] = Default::default();
         let mut solution_chars = Pattern::count_chars(solution);
 
         for (i, (guess_char, solution_char)) in guess.chars().zip(solution.chars()).enumerate() {
+            if guess_char == solution_char {
+                *solution_chars.get_mut(&guess_char).unwrap() -= 1;
+                hints[i] = Some(Hint::Green);
+            }
+        }
+
+        for (i, guess_char) in guess.chars().enumerate() {
+            if hints[i].is_some() {
+                continue;
+            }
+
             let hint = match solution_chars.get_mut(&guess_char) {
                 Some(0) | None => Hint::Black,
                 Some(count) => {
                     *count -= 1;
-
-                    if guess_char == solution_char {
-                        Hint::Green
-                    } else {
-                        Hint::Yellow
-                    }
+                    Hint::Yellow
                 }
             };
 
-            hints[i] = hint;
+            hints[i] = Some(hint);
         }
 
         Pattern {
             guess: guess.clone(),
-            hints,
+            hints: hints
+                .into_iter()
+                .map(|hint| hint.unwrap())
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
         }
     }
 
@@ -198,6 +209,20 @@ mod tests {
         assert_eq!(Some(&Hint::Green), iter.next());
         assert_eq!(Some(&Hint::Black), iter.next());
         assert_eq!(Some(&Hint::Yellow), iter.next());
+        assert_eq!(Some(&Hint::Black), iter.next());
+        assert_eq!(None, iter.next());
+    }
+
+    #[test]
+    fn given_a_char_is_misplaced_first_then_correctly_placed_later_when_from_solution_and_guess_then_hints_are_black_then_green(
+    ) {
+        let pattern = Pattern::from_solution_and_guess(&Word::new("gloat"), &Word::new("altar"));
+        let mut iter = pattern.hints();
+
+        assert_eq!(Some(&Hint::Black), iter.next());
+        assert_eq!(Some(&Hint::Green), iter.next());
+        assert_eq!(Some(&Hint::Yellow), iter.next());
+        assert_eq!(Some(&Hint::Green), iter.next());
         assert_eq!(Some(&Hint::Black), iter.next());
         assert_eq!(None, iter.next());
     }
