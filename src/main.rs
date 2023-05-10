@@ -14,7 +14,7 @@ const DEFAULT_WORDLE_URL: &str = "https://www.nytimes.com/games/wordle/index.htm
 #[clap(version, about)]
 struct Opt {
     /// Sets the path to the dictionary
-    #[clap(short, long, parse(from_os_str))]
+    #[clap(short, long, value_parser)]
     dictionary: Option<PathBuf>,
 
     #[clap(subcommand)]
@@ -38,13 +38,13 @@ enum Command {
         #[clap()]
         solution: Word,
         /// Sets the pattern to match
-        #[clap(name = "PATTERN", parse(try_from_str = parse_hints))]
+        #[clap(name = "PATTERN", value_parser = parse_hints)]
         hints: [Hint; Word::SIZE],
     },
     /// Finds the words that may be the solution
     Solve {
         /// Sets the guess and its hints, separated by a comma
-        #[clap(name = "GUESS", parse(try_from_str = parse_guess_and_hints))]
+        #[clap(name = "GUESS", value_parser = parse_guess_and_hints)]
         guesses_and_hints: Vec<(Word, [Hint; Word::SIZE])>,
     },
     /// Displays the list of valid, normalized words from the dictionary.
